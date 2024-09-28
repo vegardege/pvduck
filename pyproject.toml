@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "pvduck"
+version = "0.1.0"
+description = "Load Wikimedia pageview data to a duckdb"
+authors = ["Vegard Egeland <vegardegeland@gmail.com>"]
+license = "MIT License"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.group.dev.dependencies]
+black = "24.8.0"
+isort = "5.13.2"
+mypy = "1.11.1"
+pytest = "8.3.2"
+flake8 = "7.1.0"
+pytest-cov = "5.0.0"
+
+[[tool.poetry.packages]]
+include = "pvduck"
+from = "src"
+
+[tool.isort]
+profile = "black"
+src_paths = ["src", "tests"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
