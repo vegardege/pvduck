@@ -76,7 +76,7 @@ def create_db(db: Path) -> None:
         connection.sql("COMMIT TRANSACTION")
 
 
-def update_db_from_parquet(db: Path, parquet: Path) -> None:
+def update_from_parquet(db: Path, parquet: Path) -> None:
     """Update the database with the content of the parquet file.
 
     Args:
