@@ -25,11 +25,7 @@ USER_EDITOR = os.getenv("EDITOR", "nano")
 
 
 class Config(BaseModel):
-    """Configuration for a single sync project.
-
-    Attributes:
-        database_path (Path): Path to the DuckDB database file.
-    """
+    """Configuration for a single sync project."""
 
     database_path: Path
 
@@ -39,6 +35,15 @@ class Config(BaseModel):
     start_date: Annotated[datetime, BeforeValidator(mandatory_datetime)]
     end_date: Annotated[Optional[datetime], BeforeValidator(optional_datetime)]
     sample_rate: float
+
+    line_regex: Optional[str]
+    domain_codes: Optional[list[str]]
+    page_title: Optional[str]
+    min_views: Optional[int]
+    max_views: Optional[int]
+    languages: Optional[list[str]]
+    domains: Optional[list[str]]
+    mobile: Optional[bool]
 
 
 def read_config(project_name: str) -> Config:
@@ -66,15 +71,11 @@ def read_config(project_name: str) -> Config:
     return Config.model_validate(config_data, strict=True)
 
 
-def write_config(
-    project_name: str, editor: Optional[str] = None, allow_replace: bool = False
-) -> Config:
+def write_config(project_name: str, allow_replace: bool = False) -> Config:
     """Open an editor to let the user modify the config file.
 
     Args:
         project_name (str): Name of the project.
-        editor (Optional[str]): Path to the editor executable.
-            Defaults to the EDITOR environment variable if not set.
         allow_replace (bool): If True, allow replacing the config file
             with a new one. Defaults to False.
 
@@ -84,7 +85,7 @@ def write_config(
     Raises:
         FileNotFoundError: If the config file does not exist.
     """
-    default_config_path = ASSETS_ROOT / "config.yml"
+    default_config_path = ASSETS_ROOT / "default_config.yml"
     project_config_path = CONFIG_ROOT / f"{project_name}.yml"
 
     if project_config_path.is_file() and not allow_replace:
@@ -101,7 +102,7 @@ def write_config(
         tmp_path = Path(tmpdir) / f"{project_name}.yml"
         shutil.copy(src_path, tmp_path)
 
-        subprocess.run([editor or USER_EDITOR, str(tmp_path)], check=True)
+        subprocess.run([USER_EDITOR, str(tmp_path)], check=True)
 
         with open(tmp_path, "rb") as f:
             config_data: dict[str, Any] = yaml.safe_load(f)

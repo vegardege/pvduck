@@ -1,7 +1,5 @@
 import sys
 import time
-from datetime import datetime
-from pathlib import Path
 
 import typer
 from rich import print
@@ -113,7 +111,17 @@ def sync(project_name: str) -> None:
             url = url_from_timestamp(timestamp=timestamp)
 
             print(f"Downloading from '{url}'")
-            with parquet_from_url(url) as parquet:
+            with parquet_from_url(
+                url,
+                line_regex=config.line_regex,
+                domain_codes=config.domain_codes,
+                page_title=config.page_title,
+                min_views=config.min_views,
+                max_views=config.max_views,
+                languages=config.languages,
+                domains=config.domains,
+                mobile=config.mobile,
+            ) as parquet:
                 print("Updating database")
                 update_from_parquet(
                     config.database_path,

@@ -21,3 +21,29 @@ sleep_time: 30
 start_date: 2024-01-01
 end_date:
 sample_rate: 1.0
+
+# Filters are used to destructively remove pageviews from the dump files.
+# Don't change this after you have started syncing, or the database will be
+# left in an inconsistent state.
+
+# A regular expression applied to lines before parsing.
+line_regex:
+
+# A list of domain codes to accept.
+domain_codes:
+
+# A regular expression applied to the page title after parsing.
+page_title:
+
+# Min and max number of views needed in a given hour to include a page.
+min_views:
+max_views:
+
+# A list of languages to accept.
+languages:
+
+# A list of projects to accept.
+domains:
+
+# If True, only mobile pages, if False, only desktop pages.
+mobile:
