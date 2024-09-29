@@ -6,7 +6,7 @@ from pathlib import Path
 import typer
 from rich import print
 
-from pvduck.config import read_config, update_config
+from pvduck.config import list_config_files, read_config, remove_config, write_config
 from pvduck.db import (
     compact_db,
     create_db,
@@ -25,7 +25,7 @@ app = typer.Typer()
 def create(project_name: str) -> None:
     """Create a new database."""
     try:
-        config = update_config(project_name, allow_replace=False)
+        config = write_config(project_name, allow_replace=False)
         create_db(config.database_path)
         print(f"Project '{project_name}' created")
     except FileExistsError:
@@ -39,14 +39,15 @@ def create(project_name: str) -> None:
 @app.command()
 def ls() -> None:
     """List all projects."""
-    raise NotImplementedError("Listing projects is not implemented yet.")
+    for project_name in list_config_files():
+        print(f"- {project_name}")
 
 
 @app.command()
 def edit(project_name: str) -> None:
     """Edit the configuration of a project."""
     try:
-        update_config(project_name, allow_replace=True)
+        write_config(project_name, allow_replace=True)
     except FileNotFoundError:
         print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
         sys.exit(2)
@@ -57,8 +58,26 @@ def edit(project_name: str) -> None:
 
 @app.command()
 def rm(project_name: str) -> None:
-    """Delete the database."""
-    raise NotImplementedError("Deleting the database is not implemented yet.")
+    """Delete the configuration and database."""
+    try:
+        # Ask if the user is sure
+        if not typer.confirm(
+            f"Are you sure you want to delete the project '{project_name}'?\n"
+            "This action cannot be undone."
+        ):
+            print("Aborted")
+            return
+
+        delete_database = typer.confirm(f"Do you want to delete the database?")
+
+        remove_config(project_name, delete_database=delete_database)
+        print(f"Project '{project_name}' deleted")
+    except FileNotFoundError:
+        print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
+        sys.exit(2)
+    except Exception as e:
+        print(f"[bold red]Error:[/bold red] {e}")
+        sys.exit(1)
 
 
 @app.command()

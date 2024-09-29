@@ -52,7 +52,7 @@ def read_config(project_name: str) -> Config:
     )
 
 
-def update_config(
+def write_config(
     project_name: str, editor: Optional[str] = None, allow_replace: bool = False
 ) -> Config:
     """Open an editor to let the user modify the config file.
@@ -80,6 +80,36 @@ def update_config(
     subprocess.run([editor or USER_EDITOR, str(config_path)], check=True)
 
     return read_config(project_name)
+
+
+def list_config_files() -> list[str]:
+    """List all config files in the XDG base directory.
+
+    Returns:
+        list[str]: List of project names.
+    """
+    return [f.stem for f in CONFIG_ROOT.glob("*.toml")]
+
+
+def remove_config(project_name: str, delete_database: bool = False) -> None:
+    """Delete the config file for a project.
+
+    Args:
+        project_name (str): Name of the project.
+        delete_database (bool): If True, delete the associated database file.
+            It can't be updated without the config file, but could still be
+            useful to keep as a read-only data source.
+
+    Raises:
+        FileNotFoundError: If the config file does not exist.
+    """
+    config_path = CONFIG_ROOT / f"{project_name}.toml"
+    data_path = DATA_ROOT / f"{project_name}.duckdb"
+
+    if config_path.is_file():
+        config_path.unlink()
+    if data_path.is_file() and delete_database:
+        data_path.unlink()
 
 
 def _create_default_config(target_path: Path) -> None:
