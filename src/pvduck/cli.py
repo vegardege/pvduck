@@ -99,7 +99,7 @@ def sync(
                 continue  # Already processed
 
             print(f"Processing '{timestamp}'")
-            url = url_from_timestamp(timestamp=timestamp)
+            url = url_from_timestamp(config.base_url, timestamp)
 
             print(f"Downloading from '{url}'")
             with parquet_from_url(
