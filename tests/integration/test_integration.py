@@ -167,7 +167,7 @@ def _pageviews_count(project_name: str) -> int:
 
     with duckdb.connect(db_path) as conn:
         result = conn.execute("SELECT COUNT(*) FROM pageviews").fetchone()
-        return result[0]
+        return result[0] if result else 0
 
 
 def _main_page_views(project_name: str) -> Optional[int]:
@@ -197,4 +197,4 @@ def _log_count(project_name: str, success_only: bool = False) -> int:
 
     with duckdb.connect(db_path) as conn:
         result = conn.execute(sql).fetchone()
-        return result[0]
+        return result[0] if result else 0
