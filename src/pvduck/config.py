@@ -1,9 +1,14 @@
 import os
 import shutil
 import subprocess
-from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Annotated, Any, Optional
+
+import yaml
+from pydantic import BaseModel, BeforeValidator, HttpUrl
+
+from pvduck.validators import mandatory_datetime, optional_datetime
 
 XDG_CONFIG = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config"))
 XDG_DATA = Path(os.getenv("XDG_DATA_HOME", Path.home() / ".local" / "share"))
@@ -18,8 +23,7 @@ DATA_ROOT.mkdir(parents=True, exist_ok=True)
 USER_EDITOR = os.getenv("EDITOR", "nano")
 
 
-@dataclass
-class Config:
+class Config(BaseModel):
     """Configuration for a single sync project.
 
     Attributes:
@@ -27,6 +31,13 @@ class Config:
     """
 
     database_path: Path
+
+    base_url: HttpUrl
+    sleep_time: int
+
+    start_date: Annotated[datetime, BeforeValidator(mandatory_datetime)]
+    end_date: Annotated[Optional[datetime], BeforeValidator(optional_datetime)]
+    sample_rate: float
 
 
 def read_config(project_name: str) -> Config:
@@ -41,15 +52,17 @@ def read_config(project_name: str) -> Config:
     Raises:
         FileNotFoundError: If the config file does not exist.
     """
-    config_path = CONFIG_ROOT / f"{project_name}.toml"
+    config_path = CONFIG_ROOT / f"{project_name}.yml"
     data_path = DATA_ROOT / f"{project_name}.duckdb"
 
     if not config_path.is_file():
         raise FileNotFoundError(f"Config file not found at {config_path}")
 
-    return Config(
-        database_path=data_path,
-    )
+    with open(config_path, "rb") as f:
+        config_data: dict[str, Any] = yaml.safe_load(f)
+        config_data["database_path"] = data_path
+
+    return Config.model_validate(config_data, strict=True)
 
 
 def write_config(
@@ -70,7 +83,7 @@ def write_config(
     Raises:
         FileNotFoundError: If the config file does not exist.
     """
-    config_path = CONFIG_ROOT / f"{project_name}.toml"
+    config_path = CONFIG_ROOT / f"{project_name}.yml"
 
     if config_path.is_file() and not allow_replace:
         raise FileExistsError(f"Config file already exists at {config_path}")
@@ -88,7 +101,7 @@ def list_config_files() -> list[str]:
     Returns:
         list[str]: List of project names.
     """
-    return [f.stem for f in CONFIG_ROOT.glob("*.toml")]
+    return [f.stem for f in CONFIG_ROOT.glob("*.yml")]
 
 
 def remove_config(project_name: str, delete_database: bool = False) -> None:
@@ -103,7 +116,7 @@ def remove_config(project_name: str, delete_database: bool = False) -> None:
     Raises:
         FileNotFoundError: If the config file does not exist.
     """
-    config_path = CONFIG_ROOT / f"{project_name}.toml"
+    config_path = CONFIG_ROOT / f"{project_name}.yml"
     data_path = DATA_ROOT / f"{project_name}.duckdb"
 
     if config_path.is_file():
@@ -118,5 +131,5 @@ def _create_default_config(target_path: Path) -> None:
     Args:
         target_path (Path): Path to the target config file.
     """
-    src_path = ASSETS_ROOT / "default_config.toml"
+    src_path = ASSETS_ROOT / "default_config.yml"
     shutil.copy(src_path, target_path)

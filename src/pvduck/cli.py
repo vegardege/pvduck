@@ -23,7 +23,7 @@ app = typer.Typer()
 
 @app.command()
 def create(project_name: str) -> None:
-    """Create a new database."""
+    """Create a new project."""
     try:
         config = write_config(project_name, allow_replace=False)
         create_db(config.database_path)
@@ -45,7 +45,7 @@ def ls() -> None:
 
 @app.command()
 def edit(project_name: str) -> None:
-    """Edit the configuration of a project."""
+    """Edit project config."""
     try:
         write_config(project_name, allow_replace=True)
     except FileNotFoundError:
@@ -58,7 +58,7 @@ def edit(project_name: str) -> None:
 
 @app.command()
 def rm(project_name: str) -> None:
-    """Delete the configuration and database."""
+    """Delete a project, config and database."""
     try:
         # Ask if the user is sure
         if not typer.confirm(
@@ -98,12 +98,12 @@ def compact(project_name: str) -> None:
 
 @app.command()
 def sync(project_name: str) -> None:
-    """Sync the database with the parquet files."""
+    """Download, parse, and sync pageviews files."""
     try:
         config = read_config(project_name)
 
         seen = read_log_timestamps(config.database_path)
-        ts = timeseries(datetime(2024, 8, 1), datetime(2024, 8, 31))
+        ts = timeseries(config.start_date, config.end_date, config.sample_rate)
 
         for timestamp in ts:
             if timestamp in seen:
@@ -127,7 +127,7 @@ def sync(project_name: str) -> None:
             )
             print(f"Updated from {parquet}")
 
-            time.sleep(30)
+            time.sleep(config.sleep_time)
 
     except Exception as e:
         update_log(

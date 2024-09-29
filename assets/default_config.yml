@@ -1,0 +1,23 @@
+# pvduck config
+
+# Specify the URL to find pageviews dumps. This URL should point to a page
+# that contains an 'other' directory where the dumps are stored. You are
+# recommended to look for a mirror closer to you:
+#
+# https://meta.wikimedia.org/wiki/Mirroring_Wikimedia_project_XML_dumps
+#
+# The sleep time is the time in seconds to wait between each request to the
+# server. This is to avoid overloading the server with requests. Please be a
+# kind user of the Wikimedia servers.
+base_url: https://dumps.wikimedia.org/
+sleep_time: 30
+
+# Specify the date range. The sample rate is the probability of each hour in
+# the date interval being downloaded and included. Date range and sample rate
+# can be increased, but if you decrease them, the database will be left in an
+# inconsistent state due to previous aggregation of data outside the range.
+#
+# Leave end date blank to keep updating with the latest dumps.
+start_date: 2024-01-01
+end_date:
+sample_rate: 1.0
