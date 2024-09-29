@@ -6,6 +6,7 @@ from pathlib import Path
 import typer
 from rich import print
 
+from pvduck.config import read_config, update_config
 from pvduck.db import (
     compact_db,
     create_db,
@@ -24,11 +25,11 @@ app = typer.Typer()
 def create(project_name: str) -> None:
     """Create a new database."""
     try:
-        db_path = Path(f"{project_name}.duckdb")
-        create_db(db_path)
+        config = update_config(project_name, allow_replace=False)
+        create_db(config.database_path)
         print(f"Project '{project_name}' created")
     except FileExistsError:
-        print(f"[bold red]Error:[/bold red] Project {db_path} already exists")
+        print(f"[bold red]Error:[/bold red] Project {project_name} already exists")
         sys.exit(2)
     except Exception as e:
         print(f"[bold red]Error:[/bold red] {e}")
@@ -44,7 +45,14 @@ def ls() -> None:
 @app.command()
 def edit(project_name: str) -> None:
     """Edit the configuration of a project."""
-    raise NotImplementedError("Editing the configuration is not implemented yet.")
+    try:
+        update_config(project_name, allow_replace=True)
+    except FileNotFoundError:
+        print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
+        sys.exit(2)
+    except Exception as e:
+        print(f"[bold red]Error:[/bold red] {e}")
+        sys.exit(1)
 
 
 @app.command()
@@ -57,10 +65,10 @@ def rm(project_name: str) -> None:
 def compact(project_name: str) -> None:
     """Compact the database."""
     try:
-        db_path = Path(f"{project_name}.duckdb")
-        compact_db(db_path)
+        config = read_config(project_name)
+        compact_db(config.database_path)
     except FileNotFoundError:
-        print(f"[bold red]Error:[/bold red] Project {db_path} does not exist")
+        print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
         sys.exit(2)
     except Exception as e:
         print(f"[bold red]Error:[/bold red] {e}")
@@ -73,9 +81,9 @@ def compact(project_name: str) -> None:
 def sync(project_name: str) -> None:
     """Sync the database with the parquet files."""
     try:
-        db_path = Path(f"{project_name}.duckdb")
+        config = read_config(project_name)
 
-        seen = read_log_timestamps(db_path)
+        seen = read_log_timestamps(config.database_path)
         ts = timeseries(datetime(2024, 8, 1), datetime(2024, 8, 31))
 
         for timestamp in ts:
@@ -88,15 +96,27 @@ def sync(project_name: str) -> None:
             print(f"Downloading from '{url}'")
             with parquet_from_url(url) as parquet:
                 print("Updating database")
-                update_from_parquet(db_path, parquet)
+                update_from_parquet(
+                    config.database_path,
+                    parquet,
+                )
 
-            update_log(db_path, timestamp, success=True)
+            update_log(
+                config.database_path,
+                timestamp,
+                success=True,
+            )
             print(f"Updated from {parquet}")
 
             time.sleep(30)
 
     except Exception as e:
-        update_log(db_path, timestamp, success=False, error=str(e))
+        update_log(
+            config.database_path,
+            timestamp,
+            success=False,
+            error=str(e),
+        )
         print(f"[bold red]Error:[/bold red] {e}")
         sys.exit(1)
 
