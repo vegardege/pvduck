@@ -7,7 +7,7 @@ import duckdb
 import pytest
 
 from pvduck.db import (
-    compact_database,
+    compact_db,
     create_db,
     read_log_timestamps,
     update_from_parquet,
@@ -143,7 +143,7 @@ def test_compact_db() -> None:
             assert result[0][5] == 74953
 
         # Compact the database
-        compact_database(db_path)
+        compact_db(db_path)
 
         # Check that the database is still valid
         with duckdb.connect(db_path) as connection:
@@ -159,7 +159,7 @@ def test_compact_db() -> None:
 
         # Make sure we can't compact a non-existing database
         with pytest.raises(FileNotFoundError):
-            compact_database(Path(tmpdir) / "non_existing.duckdb")
+            compact_db(Path(tmpdir) / "non_existing.duckdb")
 
 
 def test_log() -> None:
@@ -170,8 +170,9 @@ def test_log() -> None:
 
         # Check that the database is empty
         with duckdb.connect(db_path) as connection:
-            result = connection.sql("SELECT COUNT(*) FROM log").fetchone()
-            assert result[0] == 0
+            result = connection.sql("SELECT COUNT(*) FROM log").fetchall()
+            assert len(result) == 1
+            assert result[0][0] == 0
 
         assert read_log_timestamps(db_path) == set()
 

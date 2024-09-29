@@ -127,7 +127,7 @@ def update_log(
         )
 
 
-def compact_database(db: Path) -> tuple[float, float, float]:
+def compact_db(db: Path) -> tuple[float, float, float]:
     """Compact the database by creating a new table and dropping the old one.
 
     DuckDB does not automatically compact the database when upserting data,
