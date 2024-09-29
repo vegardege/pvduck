@@ -1,5 +1,6 @@
 import sys
 import time
+from typing import Annotated, Optional
 
 import typer
 from rich import print
@@ -23,15 +24,12 @@ app = typer.Typer()
 def create(project_name: str) -> None:
     """Create a new project."""
     try:
-        config = write_config(project_name, allow_replace=False)
+        config = write_config(project_name, replace_existing=False)
         create_db(config.database_path)
         print(f"Project '{project_name}' created")
     except FileExistsError:
         print(f"[bold red]Error:[/bold red] Project {project_name} already exists")
         sys.exit(2)
-    except Exception as e:
-        print(f"[bold red]Error:[/bold red] {e}")
-        sys.exit(1)
 
 
 @app.command()
@@ -45,37 +43,22 @@ def ls() -> None:
 def edit(project_name: str) -> None:
     """Edit project config."""
     try:
-        write_config(project_name, allow_replace=True)
+        write_config(project_name, replace_existing=True)
+        print(f"Project '{project_name}' updated")
     except FileNotFoundError:
         print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
         sys.exit(2)
-    except Exception as e:
-        print(f"[bold red]Error:[/bold red] {e}")
-        sys.exit(1)
 
 
 @app.command()
 def rm(project_name: str) -> None:
     """Delete a project, config and database."""
     try:
-        # Ask if the user is sure
-        if not typer.confirm(
-            f"Are you sure you want to delete the project '{project_name}'?\n"
-            "This action cannot be undone."
-        ):
-            print("Aborted")
-            return
-
-        delete_database = typer.confirm(f"Do you want to delete the database?")
-
-        remove_config(project_name, delete_database=delete_database)
+        remove_config(project_name, delete_database=True)
         print(f"Project '{project_name}' deleted")
     except FileNotFoundError:
         print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
         sys.exit(2)
-    except Exception as e:
-        print(f"[bold red]Error:[/bold red] {e}")
-        sys.exit(1)
 
 
 @app.command()
@@ -87,23 +70,31 @@ def compact(project_name: str) -> None:
     except FileNotFoundError:
         print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
         sys.exit(2)
-    except Exception as e:
-        print(f"[bold red]Error:[/bold red] {e}")
-        sys.exit(1)
 
     print(f"Project '{project_name}' compacted")
 
 
 @app.command()
-def sync(project_name: str) -> None:
+def sync(
+    project_name: str,
+    max_files: Annotated[
+        Optional[int],
+        typer.Argument(help="The maximum number of files to process"),
+    ] = None,
+) -> None:
     """Download, parse, and sync pageviews files."""
     try:
         config = read_config(project_name)
+    except FileNotFoundError:
+        print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
+        sys.exit(2)
 
-        seen = read_log_timestamps(config.database_path)
-        ts = timeseries(config.start_date, config.end_date, config.sample_rate)
+    seen = read_log_timestamps(config.database_path)
+    ts = timeseries(config.start_date, config.end_date, config.sample_rate)
 
-        for timestamp in ts:
+    file_count = 0
+    for timestamp in ts:
+        try:
             if timestamp in seen:
                 continue  # Already processed
 
@@ -135,16 +126,22 @@ def sync(project_name: str) -> None:
             )
             print(f"Updated from {parquet}")
 
+            file_count += 1
+
+            if max_files and file_count >= max_files:
+                print(f"[bold yellow]Max files reached:[/bold yellow] {max_files}")
+                break
+
             time.sleep(config.sleep_time)
 
-    except Exception as e:
-        update_log(
-            config.database_path,
-            timestamp,
-            success=False,
-            error=str(e),
-        )
-        print(f"[bold red]Error:[/bold red] {e}")
-        sys.exit(1)
+        except Exception as e:
+            update_log(
+                config.database_path,
+                timestamp,
+                success=False,
+                error=str(e),
+            )
+            print(f"[bold red]Error:[/bold red] {e}")
+            sys.exit(1)
 
     print(f"Project '{project_name}' synced")

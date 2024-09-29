@@ -21,8 +21,6 @@ DATA_ROOT = XDG_DATA / "pvduck"
 CONFIG_ROOT.mkdir(parents=True, exist_ok=True)
 DATA_ROOT.mkdir(parents=True, exist_ok=True)
 
-USER_EDITOR = os.getenv("EDITOR", "nano")
-
 
 class Config(BaseModel):
     """Configuration for a single sync project."""
@@ -61,9 +59,6 @@ def read_config(project_name: str) -> Config:
     config_path = CONFIG_ROOT / f"{project_name}.yml"
     data_path = DATA_ROOT / f"{project_name}.duckdb"
 
-    if not config_path.is_file():
-        raise FileNotFoundError(f"Config file not found at {config_path}")
-
     with open(config_path, "rb") as f:
         config_data: dict[str, Any] = yaml.safe_load(f)
         config_data["database_path"] = data_path
@@ -71,12 +66,12 @@ def read_config(project_name: str) -> Config:
     return Config.model_validate(config_data, strict=True)
 
 
-def write_config(project_name: str, allow_replace: bool = False) -> Config:
+def write_config(project_name: str, replace_existing: bool = False) -> Config:
     """Open an editor to let the user modify the config file.
 
     Args:
         project_name (str): Name of the project.
-        allow_replace (bool): If True, allow replacing the config file
+        replace_existing (bool): If True, allow replacing the config file
             with a new one. Defaults to False.
 
     Returns:
@@ -88,8 +83,10 @@ def write_config(project_name: str, allow_replace: bool = False) -> Config:
     default_config_path = ASSETS_ROOT / "default_config.yml"
     project_config_path = CONFIG_ROOT / f"{project_name}.yml"
 
-    if project_config_path.is_file() and not allow_replace:
+    if project_config_path.is_file() and not replace_existing:
         raise FileExistsError(f"Config file already exists at {project_config_path}")
+    elif not project_config_path.is_file() and replace_existing:
+        raise FileNotFoundError(f"Config file does not exist at {project_config_path}")
 
     # Allow the user to edit a copy of the file in a temporary directory.
     # If the saved file validates, copy it back to the proper location.
@@ -102,7 +99,10 @@ def write_config(project_name: str, allow_replace: bool = False) -> Config:
         tmp_path = Path(tmpdir) / f"{project_name}.yml"
         shutil.copy(src_path, tmp_path)
 
-        subprocess.run([USER_EDITOR, str(tmp_path)], check=True)
+        subprocess.run(
+            [os.getenv("EDITOR", "nano"), str(tmp_path)],
+            check=True,
+        )
 
         with open(tmp_path, "rb") as f:
             config_data: dict[str, Any] = yaml.safe_load(f)
@@ -137,6 +137,9 @@ def remove_config(project_name: str, delete_database: bool = False) -> None:
     """
     config_path = CONFIG_ROOT / f"{project_name}.yml"
     data_path = DATA_ROOT / f"{project_name}.duckdb"
+
+    if not config_path.is_file() or not data_path.is_file():
+        raise FileNotFoundError(f"Project {project_name} does not exist")
 
     if config_path.is_file():
         config_path.unlink()
