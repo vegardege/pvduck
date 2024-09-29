@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Any, Optional
@@ -83,14 +84,31 @@ def write_config(
     Raises:
         FileNotFoundError: If the config file does not exist.
     """
-    config_path = CONFIG_ROOT / f"{project_name}.yml"
+    default_config_path = ASSETS_ROOT / "config.yml"
+    project_config_path = CONFIG_ROOT / f"{project_name}.yml"
 
-    if config_path.is_file() and not allow_replace:
-        raise FileExistsError(f"Config file already exists at {config_path}")
-    elif not config_path.is_file():
-        _create_default_config(config_path)
+    if project_config_path.is_file() and not allow_replace:
+        raise FileExistsError(f"Config file already exists at {project_config_path}")
 
-    subprocess.run([editor or USER_EDITOR, str(config_path)], check=True)
+    # Allow the user to edit a copy of the file in a temporary directory.
+    # If the saved file validates, copy it back to the proper location.
+    with tempfile.TemporaryDirectory() as tmpdir:
+        src_path = (
+            project_config_path
+            if project_config_path.is_file()
+            else default_config_path
+        )
+        tmp_path = Path(tmpdir) / f"{project_name}.yml"
+        shutil.copy(src_path, tmp_path)
+
+        subprocess.run([editor or USER_EDITOR, str(tmp_path)], check=True)
+
+        with open(tmp_path, "rb") as f:
+            config_data: dict[str, Any] = yaml.safe_load(f)
+            config_data["database_path"] = DATA_ROOT / f"{project_name}.duckdb"
+            Config.model_validate(config_data, strict=True)
+
+        shutil.copy(tmp_path, project_config_path)
 
     return read_config(project_name)
 
@@ -123,13 +141,3 @@ def remove_config(project_name: str, delete_database: bool = False) -> None:
         config_path.unlink()
     if data_path.is_file() and delete_database:
         data_path.unlink()
-
-
-def _create_default_config(target_path: Path) -> None:
-    """Copy the default config file to a project specific location.
-
-    Args:
-        target_path (Path): Path to the target config file.
-    """
-    src_path = ASSETS_ROOT / "default_config.yml"
-    shutil.copy(src_path, target_path)
