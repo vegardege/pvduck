@@ -1,11 +1,18 @@
 import shutil
 import tempfile
+from datetime import datetime
 from pathlib import Path
 
 import duckdb
 import pytest
 
-from pvduck.db import compact_database, create_db, update_from_parquet, update_log
+from pvduck.db import (
+    compact_database,
+    create_db,
+    read_log_timestamps,
+    update_from_parquet,
+    update_log,
+)
 
 
 def test_create() -> None:
@@ -153,3 +160,34 @@ def test_compact_db() -> None:
         # Make sure we can't compact a non-existing database
         with pytest.raises(FileNotFoundError):
             compact_database(Path(tmpdir) / "non_existing.duckdb")
+
+
+def test_log() -> None:
+    """Test writing to and reading from the log table."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        db_path = Path(tmpdir) / "test.duckdb"
+        create_db(db_path)
+
+        # Check that the database is empty
+        with duckdb.connect(db_path) as connection:
+            result = connection.sql("SELECT COUNT(*) FROM log").fetchone()
+            assert result[0] == 0
+
+        assert read_log_timestamps(db_path) == set()
+
+        # Write to the log
+        update_log(db_path, datetime(2024, 1, 1), True)
+
+        with duckdb.connect(db_path) as connection:
+            result = connection.sql("SELECT timestamp FROM log").fetchall()
+            assert len(result) == 1
+            assert result[0][0] == datetime(2024, 1, 1)
+
+        assert read_log_timestamps(db_path) == {datetime(2024, 1, 1)}
+
+        # Make sure we can't read from or write to a non-existing database
+        with pytest.raises(FileNotFoundError):
+            read_log_timestamps(Path(tmpdir) / "non_existing.duckdb")
+
+        with pytest.raises(FileNotFoundError):
+            update_log(Path(tmpdir) / "non_existing.duckdb", datetime(2024, 1, 1), True)

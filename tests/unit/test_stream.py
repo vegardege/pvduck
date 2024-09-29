@@ -20,10 +20,14 @@ def test_parquet_from_file() -> None:
         # Make sure we can read information correctly from the file
         with duckdb.connect() as connection:
             result = connection.sql(f"SELECT COUNT(*) FROM '{str(parquet)}'")
-            assert result.fetchone()[0] == 1000
+            row = result.fetchone()
+            assert row is not None
+            assert row[0] == 1000
 
             result = connection.sql(f"SELECT page_title FROM '{str(parquet)}' LIMIT 1")
-            assert result.fetchone()[0] == "circumfluebant"
+            row = result.fetchone()
+            assert row is not None
+            assert row[0] == "circumfluebant"
 
     # Make sure the file is deleted after the context manager closes
     assert not parquet.is_file()

@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 # already downloaded and merged into the pageviews table.
 LOG_SQL = """
 CREATE TABLE log (
-    filename VARCHAR PRIMARY KEY,
+    timestamp TIMESTAMP PRIMARY KEY,
     success BOOLEAN NOT NULL,
     error VARCHAR
 )
@@ -76,6 +77,16 @@ def create_db(db: Path) -> None:
         connection.sql("COMMIT TRANSACTION")
 
 
+def read_log_timestamps(db: Path) -> set[datetime]:
+    """Get a list of all the files we have already processed."""
+    if not db.is_file():
+        raise FileNotFoundError(f"Database does not exist at {db}")
+
+    with duckdb.connect(db) as connection:
+        result = connection.sql("SELECT timestamp FROM log").fetchall()
+        return {row[0] for row in result}
+
+
 def update_from_parquet(db: Path, parquet: Path) -> None:
     """Update the database with the content of the parquet file.
 
@@ -96,20 +107,23 @@ def update_from_parquet(db: Path, parquet: Path) -> None:
 
 
 def update_log(
-    db: Path, filename: str, success: bool, error: Optional[str] = None
+    db: Path, timestamp: datetime, success: bool, error: Optional[str] = None
 ) -> None:
     """Update the log table with the result of the operation.
 
     Args:
         db (Path): The path to the database file.
-        filename (str): The name of the file.
+        timestamp (datetime): Date and time for the file we are logging.
         success (bool): Whether the operation was successful.
         error (Optional[str]): The error message if the operation failed.
     """
+    if not db.is_file():
+        raise FileNotFoundError(f"Database does not exist at {db}")
+
     with duckdb.connect(db) as connection:
         connection.execute(
-            "INSERT INTO log (filename, success, error) VALUES (?, ?, ?)",
-            (filename, success, error),
+            "INSERT INTO log (timestamp, success, error) VALUES (?, ?, ?)",
+            (timestamp, success, error),
         )
 
 
