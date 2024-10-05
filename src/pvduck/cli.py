@@ -5,13 +5,7 @@ from typing import Annotated, Optional
 import typer
 from rich import print
 
-from pvduck.config import (
-    list_config_files,
-    open_db,
-    read_config,
-    remove_config,
-    write_config,
-)
+from pvduck.config import read_config, write_config
 from pvduck.db import (
     compact_db,
     create_db,
@@ -19,6 +13,7 @@ from pvduck.db import (
     update_from_parquet,
     update_log,
 )
+from pvduck.project import list_projects, open_database, remove_project
 from pvduck.stream import parquet_from_url
 from pvduck.timeseries import timeseries
 from pvduck.wikimedia import url_from_timestamp
@@ -53,7 +48,7 @@ def edit(project_name: str) -> None:
 def open(project_name: str) -> None:
     """Open the database in duckdb."""
     try:
-        open_db(project_name)
+        open_database(project_name)
     except FileNotFoundError:
         print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
         sys.exit(2)
@@ -63,7 +58,7 @@ def open(project_name: str) -> None:
 def rm(project_name: str) -> None:
     """Delete a project, config and database."""
     try:
-        remove_config(project_name, delete_database=True)
+        remove_project(project_name, delete_database=True)
         print(f"Project '{project_name}' deleted")
     except FileNotFoundError:
         print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
@@ -159,5 +154,5 @@ def sync(
 @app.command()
 def ls() -> None:
     """List all projects."""
-    for project_name in list_config_files():
+    for project_name in list_projects():
         print(f"- {project_name}")
