@@ -89,6 +89,12 @@ def sync(
             if timestamp in seen:
                 continue  # Already processed
 
+            if max_files and file_count >= max_files:
+                print(f"[bold yellow]Max files reached:[/bold yellow] {max_files}")
+                break
+
+            file_count += 1
+
             print(f"Processing '{timestamp}'")
             url = url_from_timestamp(config.base_url, timestamp)
 
@@ -116,12 +122,6 @@ def sync(
                 success=True,
             )
 
-            file_count += 1
-
-            if max_files and file_count >= max_files:
-                print(f"[bold yellow]Max files reached:[/bold yellow] {max_files}")
-                break
-
             print(f"Sleeping for {config.sleep_time} seconds")
             time.sleep(config.sleep_time)
 
@@ -133,7 +133,6 @@ def sync(
                 error=str(e),
             )
             print(f"[bold red]Error:[/bold red] {e}")
-            sys.exit(1)
 
     print(f"Project '{project_name}' synced")
 

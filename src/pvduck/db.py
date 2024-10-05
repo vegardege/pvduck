@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -125,6 +125,12 @@ def update_log(
     """
     if not db.is_file():
         raise FileNotFoundError(f"Database does not exist at {db}")
+
+    # If this is a very recent file, we'll assume it's not available
+    # yet and proceed instead of failing.
+    if success is False and datetime.now() - timestamp < timedelta(hours=12):
+        print("File not available yet, skipping")
+        return
 
     with duckdb.connect(db) as connection:
         connection.execute(

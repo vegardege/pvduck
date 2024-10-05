@@ -108,8 +108,7 @@ def test_exception_in_file(monkeypatch: MonkeyPatch) -> None:
         "pvduck.cli.parquet_from_url",
         side_effect=RuntimeError("Test error"),
     ):
-        with pytest.raises(SystemExit):
-            sync(project_name, max_files=1)
+        sync(project_name, max_files=1)
 
     # Ensure the database is still empty
     assert _pageviews_count(project_name) == 0

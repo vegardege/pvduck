@@ -190,6 +190,15 @@ def test_log() -> None:
         assert read_log_timestamps(db_path, success=True) == {datetime(2024, 1, 1)}
         assert read_log_timestamps(db_path, success=False) == set()
 
+        # Make sure failures in recent files are not logged, as they are
+        # assumed to be unavailable from the mirror at check time rather
+        # than permanent errors.
+        update_log(db_path, datetime.now(), False)
+
+        assert read_log_timestamps(db_path) == {datetime(2024, 1, 1)}
+        assert read_log_timestamps(db_path, success=True) == {datetime(2024, 1, 1)}
+        assert read_log_timestamps(db_path, success=False) == set()
+
         # Make sure we can't read from or write to a non-existing database
         with pytest.raises(FileNotFoundError):
             read_log_timestamps(Path(tmpdir) / "non_existing.duckdb")
