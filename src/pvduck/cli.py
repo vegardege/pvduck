@@ -124,7 +124,6 @@ def sync(
                 timestamp,
                 success=True,
             )
-            print(f"Updated from {parquet}")
 
             file_count += 1
 
@@ -132,6 +131,7 @@ def sync(
                 print(f"[bold yellow]Max files reached:[/bold yellow] {max_files}")
                 break
 
+            print(f"Sleeping for {config.sleep_time} seconds")
             time.sleep(config.sleep_time)
 
         except Exception as e:
