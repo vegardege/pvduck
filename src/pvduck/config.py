@@ -27,7 +27,7 @@ class Config(BaseModel):
 
     database_path: Path
 
-    base_url: HttpUrl
+    base_url: str
     sleep_time: int
 
     start_date: Annotated[datetime, BeforeValidator(mandatory_datetime)]
@@ -112,3 +112,27 @@ def write_config(project_name: str, replace_existing: bool = False) -> Config:
         shutil.copy(tmp_path, project_config_path)
 
     return read_config(project_name)
+
+
+def config_path(project_name: str) -> Path:
+    """Get the path to the config file for a project.
+
+    Args:
+        project_name (str): Name of the project.
+
+    Returns:
+        Path: Path to the config file.
+    """
+    return CONFIG_ROOT / f"{project_name}.yml"
+
+
+def database_path(project_name: str) -> Path:
+    """Get the path to the database file for a project.
+
+    Args:
+        project_name (str): Name of the project.
+
+    Returns:
+        Path: Path to the database file.
+    """
+    return DATA_ROOT / f"{project_name}.duckdb"

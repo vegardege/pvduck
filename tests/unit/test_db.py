@@ -175,6 +175,8 @@ def test_log() -> None:
             assert result[0][0] == 0
 
         assert read_log_timestamps(db_path) == set()
+        assert read_log_timestamps(db_path, success=True) == set()
+        assert read_log_timestamps(db_path, success=False) == set()
 
         # Write to the log
         update_log(db_path, datetime(2024, 1, 1), True)
@@ -185,6 +187,8 @@ def test_log() -> None:
             assert result[0][0] == datetime(2024, 1, 1)
 
         assert read_log_timestamps(db_path) == {datetime(2024, 1, 1)}
+        assert read_log_timestamps(db_path, success=True) == {datetime(2024, 1, 1)}
+        assert read_log_timestamps(db_path, success=False) == set()
 
         # Make sure we can't read from or write to a non-existing database
         with pytest.raises(FileNotFoundError):

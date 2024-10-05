@@ -1,6 +1,12 @@
 import subprocess
+from dataclasses import dataclass
 
-from pvduck.config import CONFIG_ROOT, DATA_ROOT
+from pvduck import config
+
+
+@dataclass
+class ProjectStatus:
+    """Status of a project."""
 
 
 def open_database(project_name: str) -> None:
@@ -9,7 +15,7 @@ def open_database(project_name: str) -> None:
     Args:
         project_name (str): Name of the project.
     """
-    db_path = DATA_ROOT / f"{project_name}.duckdb"
+    db_path = config.database_path(project_name)
 
     if not db_path.is_file():
         raise FileNotFoundError(f"Database does not exist at {db_path}")
@@ -32,16 +38,16 @@ def remove_project(project_name: str, delete_database: bool = False) -> None:
     Raises:
         FileNotFoundError: If the config file does not exist.
     """
-    config_path = CONFIG_ROOT / f"{project_name}.yml"
-    data_path = DATA_ROOT / f"{project_name}.duckdb"
+    config_path = config.config_path(project_name)
+    database_path = config.database_path(project_name)
 
-    if not config_path.is_file() or not data_path.is_file():
+    if not config_path.is_file() or not database_path.is_file():
         raise FileNotFoundError(f"Project {project_name} does not exist")
 
     if config_path.is_file():
         config_path.unlink()
-    if data_path.is_file() and delete_database:
-        data_path.unlink()
+    if database_path.is_file() and delete_database:
+        database_path.unlink()
 
 
 def list_projects() -> list[str]:
@@ -50,4 +56,4 @@ def list_projects() -> list[str]:
     Returns:
         list[str]: List of project names.
     """
-    return [f.stem for f in CONFIG_ROOT.glob("*.yml")]
+    return [f.stem for f in config.CONFIG_ROOT.glob("*.yml")]

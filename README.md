@@ -24,6 +24,7 @@ The tool has six commands:
 | `rm <project_name>`      | Delete config and database                                     |
 | `sync <project_name>`    | Download missing data (if any) and aggregate into the database |
 | `open <project_name>`    | Open the project's database in `duckdb`                        |
+| `status <project_name>`  | See progress status for the project                            |
 | `compact <project_name>` | Reclaim disk space according to `duckdb` best practice         |
 | `ls`                     | List all existing projects                                     |
 
@@ -68,18 +69,19 @@ excluded.
 ```
 pytest tests/ --cov=src
 
-Name                       Stmts   Miss  Cover   Missing
---------------------------------------------------------
+Name                       Stmts   Miss  Cover
+----------------------------------------------
 src/pvduck/__init__.py         0      0   100%
-src/pvduck/cli.py             81      0   100%
-src/pvduck/config.py          68      0   100%
-src/pvduck/db.py              56      0   100%
+src/pvduck/cli.py            101      0   100%
+src/pvduck/config.py          61      0   100%
+src/pvduck/db.py              61      0   100%
+src/pvduck/project.py         21      0   100%
 src/pvduck/stream.py          20      0   100%
 src/pvduck/timeseries.py      32      0   100%
 src/pvduck/validators.py      10      0   100%
 src/pvduck/wikimedia.py        8      0   100%
---------------------------------------------------------
-TOTAL                        275      0   100%
+----------------------------------------------
+TOTAL                        314      0   100%
 ```
 
 > [!CAUTION]

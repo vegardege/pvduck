@@ -9,7 +9,7 @@ import duckdb
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
-from pvduck.cli import compact, create, edit, ls, open, rm, sync
+from pvduck.cli import compact, create, edit, ls, open, rm, status, sync
 from pvduck.config import CONFIG_ROOT, DATA_ROOT
 
 
@@ -53,6 +53,10 @@ def test_full_run(monkeypatch: MonkeyPatch) -> None:
     assert _log_count(project_name) == 1
     assert _log_count(project_name, success_only=True) == 1
 
+    # Test status
+    out = _capture_stdout(status, project_name)
+    assert "- Progress: 1/" in out
+
     # Run a second sync and ensure the database is updated
     sync(project_name, max_files=2)
     pv_count_second_sync = _pageviews_count(project_name)
@@ -63,6 +67,10 @@ def test_full_run(monkeypatch: MonkeyPatch) -> None:
     assert main_page_count_second_sync > main_page_first_sync
     assert _log_count(project_name) == 3
     assert _log_count(project_name, success_only=True) == 3
+
+    # Test updated status
+    out = _capture_stdout(status, project_name)
+    assert "- Progress: 3/" in out
 
     # Try to open the database (mocked)
     with patch("pvduck.config.subprocess.run") as mock_run:
@@ -136,6 +144,10 @@ def test_disallowed_commands(monkeypatch: MonkeyPatch) -> None:
     # Can't sync non-existing project
     with pytest.raises(SystemExit):
         sync(project_name)
+
+    # Can't see status of non-existing project
+    with pytest.raises(SystemExit):
+        status(project_name)
 
     # Can't compact non-existing project
     with pytest.raises(SystemExit):

@@ -66,19 +66,6 @@ def rm(project_name: str) -> None:
 
 
 @app.command()
-def compact(project_name: str) -> None:
-    """Compact the database."""
-    try:
-        config = read_config(project_name)
-        compact_db(config.database_path)
-    except FileNotFoundError:
-        print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
-        sys.exit(2)
-
-    print(f"Project '{project_name}' compacted")
-
-
-@app.command()
 def sync(
     project_name: str,
     max_files: Annotated[
@@ -149,6 +136,36 @@ def sync(
             sys.exit(1)
 
     print(f"Project '{project_name}' synced")
+
+
+@app.command()
+def status(project_name: str) -> None:
+    """See a status overview of the project."""
+    try:
+        config = read_config(project_name)
+    except FileNotFoundError:
+        print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
+        sys.exit(2)
+
+    seen = read_log_timestamps(config.database_path)
+    ts = timeseries(config.start_date, config.end_date, config.sample_rate)
+    errors = read_log_timestamps(config.database_path, success=False)
+
+    print(f"- Progress: {len(seen)}/{len(ts)} ({len(seen) / len(ts) * 100:.2f}%)")
+    print(f"- Errors:   {len(errors)}")
+
+
+@app.command()
+def compact(project_name: str) -> None:
+    """Compact the database."""
+    try:
+        config = read_config(project_name)
+        compact_db(config.database_path)
+    except FileNotFoundError:
+        print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
+        sys.exit(2)
+
+    print(f"Project '{project_name}' compacted")
 
 
 @app.command()

@@ -77,13 +77,19 @@ def create_db(db: Path) -> None:
         connection.sql("COMMIT TRANSACTION")
 
 
-def read_log_timestamps(db: Path) -> set[datetime]:
+def read_log_timestamps(db: Path, success: Optional[bool] = None) -> set[datetime]:
     """Get a list of all the files we have already processed."""
     if not db.is_file():
         raise FileNotFoundError(f"Database does not exist at {db}")
 
+    sql = "SELECT timestamp FROM log "
+    if success is True:
+        sql += "WHERE success"
+    elif success is False:
+        sql += "WHERE NOT success"
+
     with duckdb.connect(db) as connection:
-        result = connection.sql("SELECT timestamp FROM log").fetchall()
+        result = connection.sql(sql).fetchall()
         return {row[0] for row in result}
 
 
