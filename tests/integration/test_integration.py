@@ -9,7 +9,7 @@ import duckdb
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
-from pvduck.cli import compact, create, edit, ls, rm, sync
+from pvduck.cli import compact, create, edit, ls, open, rm, sync
 from pvduck.config import CONFIG_ROOT, DATA_ROOT
 
 
@@ -63,6 +63,11 @@ def test_full_run(monkeypatch: MonkeyPatch) -> None:
     assert main_page_count_second_sync > main_page_first_sync
     assert _log_count(project_name) == 3
     assert _log_count(project_name, success_only=True) == 3
+
+    # Try to open the database (mocked)
+    with patch("pvduck.config.subprocess.run") as mock_run:
+        open(project_name)
+        mock_run.assert_called_once()
 
     # Try to compact the database
     compact(project_name)
@@ -119,6 +124,10 @@ def test_disallowed_commands(monkeypatch: MonkeyPatch) -> None:
 
     # Ensure project does not exist
     assert not _project_exists(project_name)
+
+    # Can't open non-existing project
+    with pytest.raises(SystemExit):
+        open(project_name)
 
     # Can't edit non-existing project
     with pytest.raises(SystemExit):

@@ -114,6 +114,23 @@ def write_config(project_name: str, replace_existing: bool = False) -> Config:
     return read_config(project_name)
 
 
+def open_db(project_name: str) -> None:
+    """Open the database in DuckDB.
+
+    Args:
+        project_name (str): Name of the project.
+    """
+    db_path = DATA_ROOT / f"{project_name}.duckdb"
+
+    if not db_path.is_file():
+        raise FileNotFoundError(f"Database does not exist at {db_path}")
+
+    subprocess.run(
+        ["duckdb", str(db_path)],
+        check=True,
+    )
+
+
 def list_config_files() -> list[str]:
     """List all config files in the XDG base directory.
 

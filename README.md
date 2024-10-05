@@ -23,6 +23,7 @@ The tool has six commands:
 | `edit <project_name>`    | Edit project configuration                                     |
 | `rm <project_name>`      | Delete config and database                                     |
 | `sync <project_name>`    | Download missing data (if any) and aggregate into the database |
+| `open <project_name>`    | Open the project's database in `duckdb`                        |
 | `compact <project_name>` | Reclaim disk space according to `duckdb` best practice         |
 | `ls`                     | List all existing projects                                     |
 

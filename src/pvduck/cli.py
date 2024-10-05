@@ -5,7 +5,13 @@ from typing import Annotated, Optional
 import typer
 from rich import print
 
-from pvduck.config import list_config_files, read_config, remove_config, write_config
+from pvduck.config import (
+    list_config_files,
+    open_db,
+    read_config,
+    remove_config,
+    write_config,
+)
 from pvduck.db import (
     compact_db,
     create_db,
@@ -33,18 +39,21 @@ def create(project_name: str) -> None:
 
 
 @app.command()
-def ls() -> None:
-    """List all projects."""
-    for project_name in list_config_files():
-        print(f"- {project_name}")
-
-
-@app.command()
 def edit(project_name: str) -> None:
     """Edit project config."""
     try:
         write_config(project_name, replace_existing=True)
         print(f"Project '{project_name}' updated")
+    except FileNotFoundError:
+        print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
+        sys.exit(2)
+
+
+@app.command()
+def open(project_name: str) -> None:
+    """Open the database in duckdb."""
+    try:
+        open_db(project_name)
     except FileNotFoundError:
         print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
         sys.exit(2)
@@ -145,3 +154,10 @@ def sync(
             sys.exit(1)
 
     print(f"Project '{project_name}' synced")
+
+
+@app.command()
+def ls() -> None:
+    """List all projects."""
+    for project_name in list_config_files():
+        print(f"- {project_name}")
