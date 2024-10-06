@@ -15,6 +15,9 @@ without perfect precision or history is very helpful.
 
 ## Usage
 
+Call `pvduck --help` for instructions and `pvduck --install-completion` to
+install auto-completion in your shell, both of which will help.
+
 The tool has six commands:
 
 | Command                  | Description                                                    |

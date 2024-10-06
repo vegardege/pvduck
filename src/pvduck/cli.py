@@ -34,7 +34,9 @@ def create(project_name: str) -> None:
 
 
 @app.command()
-def edit(project_name: str) -> None:
+def edit(
+    project_name: Annotated[str, typer.Argument(autocompletion=list_projects)],
+) -> None:
     """Edit project config."""
     try:
         write_config(project_name, replace_existing=True)
@@ -45,7 +47,9 @@ def edit(project_name: str) -> None:
 
 
 @app.command()
-def open(project_name: str) -> None:
+def open(
+    project_name: Annotated[str, typer.Argument(autocompletion=list_projects)],
+) -> None:
     """Open the database in duckdb."""
     try:
         open_database(project_name)
@@ -55,7 +59,9 @@ def open(project_name: str) -> None:
 
 
 @app.command()
-def rm(project_name: str) -> None:
+def rm(
+    project_name: Annotated[str, typer.Argument(autocompletion=list_projects)],
+) -> None:
     """Delete a project, config and database."""
     try:
         remove_project(project_name, delete_database=True)
@@ -67,7 +73,7 @@ def rm(project_name: str) -> None:
 
 @app.command()
 def sync(
-    project_name: str,
+    project_name: Annotated[str, typer.Argument(autocompletion=list_projects)],
     max_files: Annotated[
         Optional[int],
         typer.Argument(help="The maximum number of files to process"),
@@ -138,7 +144,9 @@ def sync(
 
 
 @app.command()
-def status(project_name: str) -> None:
+def status(
+    project_name: Annotated[str, typer.Argument(autocompletion=list_projects)],
+) -> None:
     """See a status overview of the project."""
     try:
         config = read_config(project_name)
@@ -155,7 +163,9 @@ def status(project_name: str) -> None:
 
 
 @app.command()
-def compact(project_name: str) -> None:
+def compact(
+    project_name: Annotated[str, typer.Argument(autocompletion=list_projects)],
+) -> None:
     """Compact the database."""
     try:
         config = read_config(project_name)
