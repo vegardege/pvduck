@@ -1,0 +1,40 @@
+name: Lint and Test
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+
+jobs:
+  test-build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install linting and formatting dependencies
+        run: |
+          pipx install ruff ty
+          pip install pytest
+
+      - name: Install project dependencies
+        run: pip install -e .
+
+      - name: Lint code with Ruff
+        run: ruff check --output-format=github --target-version=py313
+
+      - name: Check code formatting with Ruff
+        run: ruff format --diff --target-version=py313
+
+      - name: Run Ty type checks
+        run: ty check --output-format=github --python-version=3.13 --ignore unresolved-import
+
+      - name: Run tests with coverage
+        run: pytest tests/ -m "not integration"
