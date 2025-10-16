@@ -70,7 +70,7 @@ excluded.
 ## Test
 
 ```
-pytest tests/ --cov=src
+uv run pytest tests/ --cov=src
 
 Name                       Stmts   Miss  Cover
 ----------------------------------------------
