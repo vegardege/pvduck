@@ -15,6 +15,24 @@ data you need.
 The tool was developed for my own weekend projects, where gauging popularity
 without perfect precision or history is very helpful.
 
+## Setup
+
+The easiest way to use the tool is via docker:
+
+```bash
+docker run --rm -it \
+    -v $HOME/.config:$HOME/.config \
+    -v $HOME/.local/share:$HOME/.local/share \
+    vegardege/pvduck:latest \
+    create project_name
+```
+
+Note that you need `-it` for actions opening an editor.
+
+`$HOME/.config` and `$HOME/.local/share` is the location of your preferred
+host directories for config and data storage respectively. All files will
+be stored in a subdirectory named `pvduck`.
+
 ## Usage
 
 Call `pvduck --help` for instructions and `pvduck --install-completion` to
