@@ -6,7 +6,8 @@ from pvduck.timeseries import TimestampOrder, timeseries
 
 
 def test_basic() -> None:
-    """Make sure the time series generator works with the default parameters."""
+    """Make sure the time series generator works with the default
+    parameters."""
     start_date = datetime(2024, 1, 1)
     end_date = datetime(2024, 1, 2)
     result = timeseries(start_date, end_date)
@@ -16,7 +17,9 @@ def test_basic() -> None:
     assert all(ts >= start_date and ts <= end_date for ts in result)
 
     unbounded = timeseries(datetime.now() - timedelta(days=1))
-    assert max(unbounded) == datetime.now().replace(minute=0, second=0, microsecond=0)
+    assert max(unbounded) == datetime.now().replace(
+        minute=0, second=0, microsecond=0
+    )
 
 
 def test_erroneous_input() -> None:
@@ -59,7 +62,9 @@ def test_order() -> None:
     end_date = datetime(2024, 1, 2)
 
     # Chronological order
-    chronological = timeseries(start_date, end_date, order=TimestampOrder.CHRONOLOGICAL)
+    chronological = timeseries(
+        start_date, end_date, order=TimestampOrder.CHRONOLOGICAL
+    )
     assert chronological[0] == start_date
     assert chronological[-1] == end_date
     assert chronological == sorted(chronological)
@@ -73,10 +78,14 @@ def test_order() -> None:
     assert reverse_chronological == sorted(chronological, reverse=True)
 
     # Random order
-    random_order = timeseries(start_date, end_date, order=TimestampOrder.RANDOM)
+    random_order = timeseries(
+        start_date, end_date, order=TimestampOrder.RANDOM
+    )
     assert random_order != chronological
     assert random_order != reverse_chronological
-    assert set(random_order) == set(chronological) == set(reverse_chronological)
+    assert (
+        set(random_order) == set(chronological) == set(reverse_chronological)
+    )
 
 
 def test_seed() -> None:

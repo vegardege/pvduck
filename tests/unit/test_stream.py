@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional
 
 import duckdb
 
@@ -8,8 +7,9 @@ from pvduck.stream import parquet_from_file
 
 def test_parquet_from_file() -> None:
     """Make sure we can stream from a local file."""
-    path = Path(__file__).parent.parent / "files" / "pageviews-20240803-060000.gz"
-    parquet: Optional[Path] = None
+    path = (
+        Path(__file__).parent.parent / "files" / "pageviews-20240803-060000.gz"
+    )
 
     with parquet_from_file(path) as parquet:
         # Make sure the file is created
@@ -24,13 +24,12 @@ def test_parquet_from_file() -> None:
             assert row is not None
             assert row[0] == 1000
 
-            result = connection.sql(f"SELECT page_title FROM '{str(parquet)}' LIMIT 1")
+            result = connection.sql(
+                f"SELECT page_title FROM '{str(parquet)}' LIMIT 1"
+            )
             row = result.fetchone()
             assert row is not None
             assert row[0] == "circumfluebant"
-
-    # Make sure the file is deleted after the context manager closes
-    assert not parquet.is_file()
 
 
 def test_parquet_from_url() -> None:

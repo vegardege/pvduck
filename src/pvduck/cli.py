@@ -29,7 +29,7 @@ def create(project_name: str) -> None:
         create_db(config.database_path)
         print(f"Project '{project_name}' created")
     except FileExistsError:
-        print(f"[bold red]Error:[/bold red] Project {project_name} already exists")
+        print(f"[bold red]Error:[/bold red] {project_name} already exists")
         sys.exit(2)
 
 
@@ -42,7 +42,7 @@ def edit(
         write_config(project_name, replace_existing=True)
         print(f"Project '{project_name}' updated")
     except FileNotFoundError:
-        print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
+        print(f"[bold red]Error:[/bold red] {project_name} does not exist")
         sys.exit(2)
 
 
@@ -54,7 +54,7 @@ def open(
     try:
         open_database(project_name)
     except FileNotFoundError:
-        print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
+        print(f"[bold red]Error:[/bold red] {project_name} does not exist")
         sys.exit(2)
 
 
@@ -67,7 +67,7 @@ def rm(
         remove_project(project_name, delete_database=True)
         print(f"Project '{project_name}' deleted")
     except FileNotFoundError:
-        print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
+        print(f"[bold red]Error:[/bold red] {project_name} does not exist")
         sys.exit(2)
 
 
@@ -83,7 +83,7 @@ def sync(
     try:
         config = read_config(project_name)
     except FileNotFoundError:
-        print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
+        print(f"[bold red]Error:[/bold red] {project_name} does not exist")
         sys.exit(2)
 
     seen = read_log_timestamps(config.database_path)
@@ -96,7 +96,10 @@ def sync(
                 continue  # Already processed
 
             if max_files and file_count >= max_files:
-                print(f"[bold yellow]Max files reached:[/bold yellow] {max_files}")
+                print(
+                    "[bold yellow]Max files reached:[/bold yellow] "
+                    f"{max_files}"
+                )
                 break
 
             file_count += 1
@@ -151,14 +154,16 @@ def status(
     try:
         config = read_config(project_name)
     except FileNotFoundError:
-        print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
+        print(f"[bold red]Error:[/bold red] {project_name} does not exist")
         sys.exit(2)
 
     seen = read_log_timestamps(config.database_path)
     ts = timeseries(config.start_date, config.end_date, config.sample_rate)
     errors = read_log_timestamps(config.database_path, success=False)
 
-    print(f"- Progress: {len(seen)}/{len(ts)} ({len(seen) / len(ts) * 100:.2f}%)")
+    print(
+        f"- Progress: {len(seen)}/{len(ts)} ({len(seen) / len(ts) * 100:.2f}%)"
+    )
     print(f"- Errors:   {len(errors)}")
 
 
@@ -171,7 +176,7 @@ def compact(
         config = read_config(project_name)
         compact_db(config.database_path)
     except FileNotFoundError:
-        print(f"[bold red]Error:[/bold red] Project {project_name} does not exist")
+        print(f"[bold red]Error:[/bold red] {project_name} does not exist")
         sys.exit(2)
 
     print(f"Project '{project_name}' compacted")
