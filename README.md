@@ -1,5 +1,7 @@
 # pvduck
 
+![Lint and Test](https://github.com/vegardege/pvduck/actions/workflows/lint-and-test.yml/badge.svg)
+
 `pvduck` is a cli tool allowing you to sample, download, filter, parse, and
 aggregate Wikimedia pageviews dumps, creating an overview of the most visited
 pages on a sampled subset of Wikimedia pages in a `duckdb` database.
