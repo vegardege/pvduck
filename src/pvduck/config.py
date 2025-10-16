@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Annotated, Any, Optional
 
 import yaml
-from pydantic import BaseModel, BeforeValidator, HttpUrl
+from pydantic import BaseModel, BeforeValidator
 
 from pvduck.validators import mandatory_datetime, optional_datetime
 
@@ -84,9 +84,13 @@ def write_config(project_name: str, replace_existing: bool = False) -> Config:
     project_config_path = CONFIG_ROOT / f"{project_name}.yml"
 
     if project_config_path.is_file() and not replace_existing:
-        raise FileExistsError(f"Config file already exists at {project_config_path}")
+        raise FileExistsError(
+            f"Config file already exists at {project_config_path}"
+        )
     elif not project_config_path.is_file() and replace_existing:
-        raise FileNotFoundError(f"Config file does not exist at {project_config_path}")
+        raise FileNotFoundError(
+            f"Config file does not exist at {project_config_path}"
+        )
 
     # Allow the user to edit a copy of the file in a temporary directory.
     # If the saved file validates, copy it back to the proper location.

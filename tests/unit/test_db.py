@@ -18,7 +18,6 @@ from pvduck.db import (
 def test_create() -> None:
     """Test creating a new database."""
     with tempfile.TemporaryDirectory() as tmpdir:
-
         # Make sure we can create a new table
         db_path = Path(tmpdir) / "test.duckdb"
         assert not db_path.exists()
@@ -104,7 +103,9 @@ def test_update_from_parquet() -> None:
 
         # Make sure we can't fill from a non-existing parquet file
         with pytest.raises(FileNotFoundError):
-            update_from_parquet(Path(tmpdir) / "non_existing.duckdb", parquet_target[0])
+            update_from_parquet(
+                Path(tmpdir) / "non_existing.duckdb", parquet_target[0]
+            )
 
         with pytest.raises(FileNotFoundError):
             update_from_parquet(db_path, Path(tmpdir) / "non_existing.parquet")
@@ -114,7 +115,6 @@ def test_compact_db() -> None:
     """Make sure compacting the database does not affect data integrity,
     just the size of the table file (which is not deterministic)."""
     with tempfile.TemporaryDirectory() as tmpdir:
-
         # Make sure we can create a new table
         db_path = Path(tmpdir) / "test.duckdb"
         assert not db_path.exists()
@@ -122,7 +122,9 @@ def test_compact_db() -> None:
         create_db(db_path)
 
         parquet_src = (
-            Path(__file__).parent.parent / "files" / "pageviews-20240818-100000.parquet"
+            Path(__file__).parent.parent
+            / "files"
+            / "pageviews-20240818-100000.parquet"
         )
         parquet_target = Path(tmpdir) / "pageviews-20240818-100000.parquet"
 
@@ -187,7 +189,9 @@ def test_log() -> None:
             assert result[0][0] == datetime(2024, 1, 1)
 
         assert read_log_timestamps(db_path) == {datetime(2024, 1, 1)}
-        assert read_log_timestamps(db_path, success=True) == {datetime(2024, 1, 1)}
+        assert read_log_timestamps(db_path, success=True) == {
+            datetime(2024, 1, 1)
+        }
         assert read_log_timestamps(db_path, success=False) == set()
 
         # Make sure failures in recent files are not logged, as they are
@@ -196,7 +200,9 @@ def test_log() -> None:
         update_log(db_path, datetime.now(), False)
 
         assert read_log_timestamps(db_path) == {datetime(2024, 1, 1)}
-        assert read_log_timestamps(db_path, success=True) == {datetime(2024, 1, 1)}
+        assert read_log_timestamps(db_path, success=True) == {
+            datetime(2024, 1, 1)
+        }
         assert read_log_timestamps(db_path, success=False) == set()
 
         # Make sure we can't read from or write to a non-existing database
@@ -204,4 +210,8 @@ def test_log() -> None:
             read_log_timestamps(Path(tmpdir) / "non_existing.duckdb")
 
         with pytest.raises(FileNotFoundError):
-            update_log(Path(tmpdir) / "non_existing.duckdb", datetime(2024, 1, 1), True)
+            update_log(
+                Path(tmpdir) / "non_existing.duckdb",
+                datetime(2024, 1, 1),
+                True,
+            )

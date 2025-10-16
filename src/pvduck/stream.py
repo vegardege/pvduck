@@ -43,8 +43,8 @@ def parquet_from_file(
         min_views (Optional[int]): The minimum number of views to include.
         max_views (Optional[int]): The maximum number of views to include.
         languages (Optional[list[str]]): A list of languages to include.
-            For example, `["en", "de"]` will only include lines from the English
-            and German Wikipedia.
+            For example, `["en", "de"]` will only include lines from the
+            English and German Wikipedia.
         domains (Optional[list[str]]): A list of domains to include.
             For example, `["wikipedia.org", "wikimedia.org"]` will only include
             lines from the English Wikipedia and Wikimedia Foundation.
@@ -112,8 +112,8 @@ def parquet_from_url(
         min_views (Optional[int]): The minimum number of views to include.
         max_views (Optional[int]): The maximum number of views to include.
         languages (Optional[list[str]]): A list of languages to include.
-            For example, `["en", "de"]` will only include lines from the English
-            and German Wikipedia.
+            For example, `["en", "de"]` will only include lines from the
+            English and German Wikipedia.
         domains (Optional[list[str]]): A list of domains to include.
             For example, `["wikipedia.org", "wikimedia.org"]` will only include
             lines from the English Wikipedia and Wikimedia Foundation.

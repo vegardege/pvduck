@@ -77,7 +77,9 @@ def create_db(db: Path) -> None:
         connection.sql("COMMIT TRANSACTION")
 
 
-def read_log_timestamps(db: Path, success: Optional[bool] = None) -> set[datetime]:
+def read_log_timestamps(
+    db: Path, success: Optional[bool] = None
+) -> set[datetime]:
     """Get a list of all the files we have already processed."""
     if not db.is_file():
         raise FileNotFoundError(f"Database does not exist at {db}")
@@ -191,7 +193,9 @@ def compact_db(db: Path) -> tuple[float, float, float]:
 
     size_post_compacting = _file_size_mb(db)
     logger.info("Size after compacting: %.2f MB", size_post_compacting)
-    logger.info("Space saved: %.2f MB", size_pre_compacting - size_post_compacting)
+    logger.info(
+        "Space saved: %.2f MB", size_pre_compacting - size_post_compacting
+    )
 
     return (
         size_pre_compacting,
