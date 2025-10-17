@@ -1,6 +1,6 @@
 # pvduck
 
-![Lint and Test](https://github.com/vegardege/pvduck/actions/workflows/lint-and-test.yml/badge.svg)
+[![Lint, Test, Build, Deploy](https://github.com/vegardege/pvduck/actions/workflows/lint-test-build-deploy.yml/badge.svg)](https://github.com/vegardege/pvduck/actions/workflows/lint-test-build-deploy.yml)
 
 `pvduck` is a cli tool allowing you to sample, download, filter, parse, and
 aggregate Wikimedia pageviews dumps, creating an overview of the most visited
