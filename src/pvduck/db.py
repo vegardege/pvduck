@@ -45,7 +45,7 @@ CREATE UNIQUE INDEX unique_pageviews
 UPDATE_PAGEVIEWS = """
 UPDATE pageviews
    SET views = pageviews.views + p.views
-  FROM read_parquet('{parquet}') AS p
+  FROM ({chunk_query}) AS p
  WHERE pageviews.domain_code = p.domain_code
    AND pageviews.page_title = p.page_title
 """
@@ -54,7 +54,7 @@ INSERT_PAGEVIEWS = """
 INSERT INTO pageviews
     (domain_code, language, domain, mobile, page_title, views)
    SELECT p.domain_code, p.language, p.domain, p.mobile, p.page_title, p.views
-     FROM read_parquet('{parquet}') AS p
+     FROM ({chunk_query}) AS p
 LEFT JOIN pageviews AS v
        ON v.domain_code = p.domain_code
       AND v.page_title = p.page_title
@@ -101,15 +101,20 @@ def read_log_timestamps(
         return {row[0] for row in result}
 
 
-def update_from_parquet(db: Path, parquet: Path) -> tuple[int, int]:
+def update_from_parquet(
+    db: Path, parquet: Path, chunk_size: int = 1_000_000
+) -> None:
     """Update the database with the content of the parquet file.
+
+    To support low memory environments, the function will update
+    and insert in chunks. This slows the function down. Adjust the
+    `chunk_size` argument to better suit your setup.
 
     Args:
         db (Path): The path to the database file.
         parquet (Path): The path to the parquet file.
-
-    Returns:
-        A tuple with the number of rows inserted and number of rows updated.
+        chunk_size (int): The number of rows to UPDATE/INSERT in one go.
+            Lower to save memory, increase for faster execution times.
 
     Raises:
         FileNotFoundError: If either file does not exist.
@@ -120,21 +125,20 @@ def update_from_parquet(db: Path, parquet: Path) -> tuple[int, int]:
         raise FileNotFoundError(f"Parquet file does not exist at {parquet}")
 
     with duckdb.connect(db) as connection:
-        connection.sql("BEGIN TRANSACTION")
+        result = connection.execute(
+            f"SELECT COUNT(*) FROM read_parquet('{parquet}')"
+        ).fetchone()
+        parquet_row_count = result[0] if result else 0
 
-        # First, we update all the rows currently in the table
-        update_sql = UPDATE_PAGEVIEWS.format(parquet=str(parquet))
-        update_result = connection.execute(update_sql)
-        updated_rows = update_result.rowcount
-
-        # Second, we insert all rows that weren't previously in the table
-        insert_sql = INSERT_PAGEVIEWS.format(parquet=str(parquet))
-        insert_result = connection.execute(insert_sql)
-        inserted_rows = insert_result.rowcount
-
-        connection.sql("COMMIT TRANSACTION")
-
-    return inserted_rows, updated_rows
+        for offset in range(0, parquet_row_count, chunk_size):
+            cq = f"""
+                SELECT *
+                  FROM read_parquet('{parquet}')
+                 LIMIT {chunk_size}
+                OFFSET {offset}
+            """
+            connection.execute(UPDATE_PAGEVIEWS.format(chunk_query=cq))
+            connection.execute(INSERT_PAGEVIEWS.format(chunk_query=cq))
 
 
 def update_log(

@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Annotated, Any, Optional
 
 import yaml
-from pydantic import BaseModel, BeforeValidator
+from pydantic import BaseModel, BeforeValidator, Field
 
 from pvduck.validators import mandatory_datetime, optional_datetime
 
@@ -42,6 +42,12 @@ class Config(BaseModel):
     languages: Optional[list[str]]
     domains: Optional[list[str]]
     mobile: Optional[bool]
+
+    chunk_size: int = Field(
+        default_factory=lambda: int(os.getenv("PVDUCK_CHUNK_SIZE", "1000000")),
+        description="Number of rows per chunk when updating the database",
+        ge=1,
+    )
 
 
 def read_config(project_name: str) -> Config:

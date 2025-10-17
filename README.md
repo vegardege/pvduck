@@ -55,6 +55,11 @@ By default, `sync` will run until it exhausted the date range given with the
 given sample rate. If you want to run it for a limited time only, apply the
 `max_files` option to stop after a specific number of files.
 
+Note that syncing can be memory intensive. It operates in chunks of 1 000 000
+rows by default, which can be modified with the `PVDUCK_CHUNK_SIZE` environment
+variable. Increase the value for faster syncs, decrease it for more memory
+efficient (but slower) execution.
+
 When you create a new project, you can define the configuration:
 
 | Param         | Description                                                                  |
