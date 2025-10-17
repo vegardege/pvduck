@@ -29,7 +29,7 @@ def create(project_name: str) -> None:
         create_db(config.database_path)
         print(f"Project '{project_name}' created")
     except FileExistsError:
-        print(f"[bold red]Error:[/bold red] {project_name} already exists")
+        print(f"[bold red]Error:[/bold red] '{project_name}' already exists")
         sys.exit(2)
 
 
@@ -42,7 +42,7 @@ def edit(
         write_config(project_name, replace_existing=True)
         print(f"Project '{project_name}' updated")
     except FileNotFoundError:
-        print(f"[bold red]Error:[/bold red] {project_name} does not exist")
+        print(f"[bold red]Error:[/bold red] '{project_name}' does not exist")
         sys.exit(2)
 
 
@@ -54,7 +54,7 @@ def open(
     try:
         open_database(project_name)
     except FileNotFoundError:
-        print(f"[bold red]Error:[/bold red] {project_name} does not exist")
+        print(f"[bold red]Error:[/bold red] '{project_name}' does not exist")
         sys.exit(2)
 
 
@@ -67,7 +67,7 @@ def rm(
         remove_project(project_name, delete_database=True)
         print(f"Project '{project_name}' deleted")
     except FileNotFoundError:
-        print(f"[bold red]Error:[/bold red] {project_name} does not exist")
+        print(f"[bold red]Error:[/bold red] '{project_name}' does not exist")
         sys.exit(2)
 
 
@@ -83,7 +83,7 @@ def sync(
     try:
         config = read_config(project_name)
     except FileNotFoundError:
-        print(f"[bold red]Error:[/bold red] {project_name} does not exist")
+        print(f"[bold red]Error:[/bold red] '{project_name}' does not exist")
         sys.exit(2)
 
     seen = read_log_timestamps(config.database_path)
@@ -154,7 +154,7 @@ def status(
     try:
         config = read_config(project_name)
     except FileNotFoundError:
-        print(f"[bold red]Error:[/bold red] {project_name} does not exist")
+        print(f"[bold red]Error:[/bold red] '{project_name}' does not exist")
         sys.exit(2)
 
     seen = read_log_timestamps(config.database_path)
@@ -176,7 +176,7 @@ def compact(
         config = read_config(project_name)
         compact_db(config.database_path)
     except FileNotFoundError:
-        print(f"[bold red]Error:[/bold red] {project_name} does not exist")
+        print(f"[bold red]Error:[/bold red] '{project_name}' does not exist")
         sys.exit(2)
 
     print(f"Project '{project_name}' compacted")

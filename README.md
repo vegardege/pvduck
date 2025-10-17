@@ -21,17 +21,17 @@ The easiest way to use the tool is via docker:
 
 ```bash
 docker run --rm -it \
-    -v $HOME/.config:$HOME/.config \
-    -v $HOME/.local/share:$HOME/.local/share \
+    -v config_volume:$HOME/.config \
+    -v data_volume:$HOME/.local/share \
     vegardege/pvduck:latest \
     create project_name
 ```
 
 Note that you need `-it` for actions opening an editor.
 
-`$HOME/.config` and `$HOME/.local/share` is the location of your preferred
-host directories for config and data storage respectively. All files will
-be stored in a subdirectory named `pvduck`.
+`config_volume` and `data_volume` is the location of your preferred host
+directories for config and data storage respectively. All files will be
+stored in a subdirectory named `pvduck`.
 
 ## Usage
 
