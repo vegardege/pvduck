@@ -120,10 +120,12 @@ def sync(
                 mobile=config.mobile,
             ) as parquet:
                 print("Updating database")
-                update_from_parquet(
+                inserted_rows, updated_rows = update_from_parquet(
                     config.database_path,
                     parquet,
                 )
+                print(f"{inserted_rows} new rows inserted")
+                print(f"{updated_rows} existing rows updated")
 
             update_log(
                 config.database_path,

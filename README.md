@@ -95,16 +95,16 @@ uv run pytest tests/ --cov=src
 Name                       Stmts   Miss  Cover
 ----------------------------------------------
 src/pvduck/__init__.py         0      0   100%
-src/pvduck/cli.py            100      0   100%
+src/pvduck/cli.py            102      0   100%
 src/pvduck/config.py          61      0   100%
-src/pvduck/db.py              64      0   100%
+src/pvduck/db.py              75      0   100%
 src/pvduck/project.py         21      0   100%
 src/pvduck/stream.py          20      0   100%
 src/pvduck/timeseries.py      32      0   100%
 src/pvduck/validators.py      10      0   100%
 src/pvduck/wikimedia.py        8      0   100%
 ----------------------------------------------
-TOTAL                        316      0   100%
+TOTAL                        329      0   100%
 ```
 
 > [!CAUTION]

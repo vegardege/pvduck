@@ -42,17 +42,23 @@ CREATE UNIQUE INDEX unique_pageviews
 # Add views from a parquet file to the table, or create new rows if they
 # don't exist yet. This design is created to save space, but note that it
 # is destructive, so we need to keep track of which files we have inserted.
-UPSERT_PAGEVIEWS = """
+UPDATE_PAGEVIEWS = """
+UPDATE pageviews
+   SET views = pageviews.views + p.views
+  FROM read_parquet('{parquet}') AS p
+ WHERE pageviews.domain_code = p.domain_code
+   AND pageviews.page_title = p.page_title
+"""
+
+INSERT_PAGEVIEWS = """
 INSERT INTO pageviews
     (domain_code, language, domain, mobile, page_title, views)
-SELECT
-    domain_code, language, domain, mobile, page_title, views
-FROM
-    '{parquet}'
-ON CONFLICT
-    (domain_code, page_title)
-DO UPDATE SET
-    views = pageviews.views + excluded.views
+   SELECT p.domain_code, p.language, p.domain, p.mobile, p.page_title, p.views
+     FROM read_parquet('{parquet}') AS p
+LEFT JOIN pageviews AS v
+       ON v.domain_code = p.domain_code
+      AND v.page_title = p.page_title
+    WHERE v.domain_code IS NULL
 """
 
 
@@ -95,12 +101,15 @@ def read_log_timestamps(
         return {row[0] for row in result}
 
 
-def update_from_parquet(db: Path, parquet: Path) -> None:
+def update_from_parquet(db: Path, parquet: Path) -> tuple[int, int]:
     """Update the database with the content of the parquet file.
 
     Args:
         db (Path): The path to the database file.
         parquet (Path): The path to the parquet file.
+
+    Returns:
+        A tuple with the number of rows inserted and number of rows updated.
 
     Raises:
         FileNotFoundError: If either file does not exist.
@@ -111,7 +120,21 @@ def update_from_parquet(db: Path, parquet: Path) -> None:
         raise FileNotFoundError(f"Parquet file does not exist at {parquet}")
 
     with duckdb.connect(db) as connection:
-        connection.sql(UPSERT_PAGEVIEWS.format(parquet=parquet))
+        connection.sql("BEGIN TRANSACTION")
+
+        # First, we update all the rows currently in the table
+        update_sql = UPDATE_PAGEVIEWS.format(parquet=str(parquet))
+        update_result = connection.execute(update_sql)
+        updated_rows = update_result.rowcount
+
+        # Second, we insert all rows that weren't previously in the table
+        insert_sql = INSERT_PAGEVIEWS.format(parquet=str(parquet))
+        insert_result = connection.execute(insert_sql)
+        inserted_rows = insert_result.rowcount
+
+        connection.sql("COMMIT TRANSACTION")
+
+    return inserted_rows, updated_rows
 
 
 def update_log(
