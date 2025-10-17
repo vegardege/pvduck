@@ -1,4 +1,4 @@
-name: Lint and Test
+name: Lint, Test, Build, Deploy
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  test-build-deploy:
+  lint-test-build-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -38,3 +38,19 @@ jobs:
 
       - name: Run tests with coverage
         run: pytest tests/ -m "not integration"
+
+      - name: Log in to Docker Hub
+        if: github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        if: github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: vegardege/pvduck:latest
+          platforms: linux/amd64
